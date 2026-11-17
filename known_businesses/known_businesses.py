@@ -129,6 +129,15 @@ def load_snapshot():
         return None
 
 
+def write_business_types():
+    """רשימת סוגי העסק הסגורה → business_types.txt (נכתבת בכל בדיקה, כך שהיא קיימת גם אם sync דולג)."""
+    types = (load_snapshot() or {}).get("business_types", [])
+    if types:
+        with open(BUSINESS_TYPES_FILE, "w", encoding="utf-8") as f:
+            f.write("\n".join(types) + "\n")
+    return types
+
+
 def system_records(known):
     """עסקים שבמערכת ואינם בקובץ — כרשומות במבנה של הקובץ (מקור: מערכת (אתר))."""
     snap = load_snapshot()
@@ -231,15 +240,13 @@ def main():
         if extra:
             save_known(known + extra)
         snap = load_snapshot() or {}
-        types = snap.get("business_types", [])
-        if types:
-            with open(BUSINESS_TYPES_FILE, "w", encoding="utf-8") as f:
-                f.write("\n".join(types) + "\n")
+        types = write_business_types()
         print(f"✅ SYNC: {len(snap.get('businesses', []))} עסקים במערכת (נכון ל-{snap.get('generated_at', '?')}), "
               f"{len(extra)} נוספו לקובץ (סה\"כ {len(known) + len(extra)}). {len(types)} סוגי עסק → {BUSINESS_TYPES_FILE}")
         return
     # מה שבמערכת נבדק תמיד, גם אם עוד לא נשמר בקובץ.
     known = known + system_records(known)
+    write_business_types()
     if args.cmd == "check":
         rec, kind = find_match(args.name, args.address, known)
         print(report_line(args.name, args.address, rec, kind))
