@@ -4,12 +4,20 @@
   check "<שם העסק>" "<כתובת>"        → KNOWN (כבר קיים, לא להכניס לדוח) / NEW (חדש)
   check-report "<דוח>.xlsx"           → בודק כל שורה בדוח ומדפיס KNOWN/NEW לכל אחת
   add "<דוח>.xlsx" --source "<מקור>"  → מוסיף לקובץ את העסקים מהדוח (רק מי שלא קיים כבר)
+  sync                                → מוסיף לקובץ את העסקים שבמערכת (האתר) וכותב את רשימת סוגי העסק
+
+בכל בדיקה (check / check-report / add) נבדקים גם כל העסקים שנמצאים עכשיו במערכת —
+מתוך reports/agent_snapshot.json בריפו Arnona_Agent, שמתעדכן כל 3 שעות מ-Supabase.
+כך עסק שהועלה לאתר אחרי הריצה הקודמת (או שנמצא בריצה שנקטעה) לא ידווח שוב.
 
 ההתאמה: אותה כתובת (רחוב + מספר בית) וגם שם דומה — אחרי ניקוי תארים (עו"ד, ד"ר, בע"מ...),
 סימני פיסוק וסדר מילים. כך "בן צבי נרדה" ו-"נרדה בן-צבי, עו\"ד" באותה כתובת נחשבים אותו עסק.
 """
 import argparse
+import json
 import os
+import time
+import urllib.request
 import re
 import sys
 from datetime import date
@@ -19,6 +27,10 @@ from openpyxl.styles import Font, PatternFill
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 KNOWN_FILE = os.path.join(HERE, "known_businesses.xlsx")
+BUSINESS_TYPES_FILE = os.path.join(HERE, "business_types.txt")
+SNAPSHOT_URL = "https://raw.githubusercontent.com/urbandetective007/Arnona_Agent/main/reports/agent_snapshot.json"
+SNAPSHOT_CACHE = "/tmp/agent_snapshot.json"
+SYSTEM_SOURCE = "מערכת (אתר)"
 HEADERS = ["שם העסק", "כתובת", "שכונה", "סוג עסק", "קישור", "מקור", "תאריך הוספה"]
 
 # מילים שאינן חלק מזהה של השם
@@ -98,6 +110,47 @@ def load_known():
     return out
 
 
+def load_snapshot():
+    """העסקים וסוגי העסק שבמערכת עכשיו. נשמר ב-/tmp לחצי שעה, כדי לא להוריד בכל בדיקה.
+    אם אי אפשר להוריד — מדפיס אזהרה (לכתוב אותה בטיוטה) ומחזיר None."""
+    try:
+        if os.path.exists(SNAPSHOT_CACHE) and time.time() - os.path.getmtime(SNAPSHOT_CACHE) < 1800:
+            with open(SNAPSHOT_CACHE, encoding="utf-8") as f:
+                return json.load(f)
+        with urllib.request.urlopen(SNAPSHOT_URL, timeout=30) as r:
+            data = r.read()
+        snap = json.loads(data.decode("utf-8"))
+        with open(SNAPSHOT_CACHE, "wb") as f:
+            f.write(data)
+        return snap
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠️ SYNC FAILED — העסקים שבמערכת לא נטענו ({e}). הבדיקה לפי הקובץ בלבד. לכתוב את זה בטיוטה.",
+              file=sys.stderr)
+        return None
+
+
+def system_records(known):
+    """עסקים שבמערכת ואינם בקובץ — כרשומות במבנה של הקובץ (מקור: מערכת (אתר))."""
+    snap = load_snapshot()
+    # מפתח לכל כתובת: רחוב + מספר, ובלי מספר בית — הכתובת המנוקה כולה (אחרת עסק בלי מספר היה נוסף שוב בכל סנכרון).
+    akey = lambda a: address_key(a) or ("", " ".join(t for t in _clean(a) if t not in ADDRESS_DROP))
+    by_address = {}
+    for rec in known:
+        by_address.setdefault(akey(rec.get("כתובת")), []).append(rec["שם העסק"])
+    out = []
+    for b in (snap or {}).get("businesses", []):
+        name, address = (b.get("name") or "").strip(), (b.get("address") or "").strip()
+        if not name or not address:
+            continue
+        k = akey(address)
+        if any(names_match(name, other) for other in by_address.get(k, [])):
+            continue
+        by_address.setdefault(k, []).append(name)
+        out.append({"שם העסק": name, "כתובת": address, "שכונה": None, "סוג עסק": b.get("type") or None,
+                    "קישור": None, "מקור": SYSTEM_SOURCE, "תאריך הוספה": date.today().isoformat()})
+    return out
+
+
 def find_match(name, address, known):
     """מחזיר (רשומה תואמת, 'same_address' / 'name_only') או (None, None)."""
     key = address_key(address)
@@ -169,9 +222,24 @@ def main():
     a = sub.add_parser("add")
     a.add_argument("report")
     a.add_argument("--source", required=True)
+    sub.add_parser("sync")
     args = p.parse_args()
 
     known = load_known()
+    if args.cmd == "sync":
+        extra = system_records(known)
+        if extra:
+            save_known(known + extra)
+        snap = load_snapshot() or {}
+        types = snap.get("business_types", [])
+        if types:
+            with open(BUSINESS_TYPES_FILE, "w", encoding="utf-8") as f:
+                f.write("\n".join(types) + "\n")
+        print(f"✅ SYNC: {len(snap.get('businesses', []))} עסקים במערכת (נכון ל-{snap.get('generated_at', '?')}), "
+              f"{len(extra)} נוספו לקובץ (סה\"כ {len(known) + len(extra)}). {len(types)} סוגי עסק → {BUSINESS_TYPES_FILE}")
+        return
+    # מה שבמערכת נבדק תמיד, גם אם עוד לא נשמר בקובץ.
+    known = known + system_records(known)
     if args.cmd == "check":
         rec, kind = find_match(args.name, args.address, known)
         print(report_line(args.name, args.address, rec, kind))
