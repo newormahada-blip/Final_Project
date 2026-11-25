@@ -1,0 +1,2 @@
+run_date,start_index,end_index,next_index,addresses_scanned,addresses_skipped,new_businesses,rejected_businesses,search_mode,websearch_calls,notes
+25-11-2026,193,204,205,12,0,0,1,FALLBACK,~55,כל כתובות בנימין מטודלה הן מגורים; נפסל: אומנות גן (שירות בבית הלקוח)
