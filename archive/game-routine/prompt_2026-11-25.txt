@@ -7,7 +7,7 @@ create a draft mail with the findings and the output Excel attached in my Gmail:
 ## ⛔ THE RESULTS MUST ALWAYS REACH THE MAIL — read before anything else
 The session can be cut at any moment (Claude usage limit, Tavily limit, an error). Whatever is not already in the draft mail at that moment is lost.
 So the draft is NOT written at the end — it is created at the start and kept up to date after EVERY address:
-1. START (before the first Tavily call): create the Excel with the header row only, save it, and create the Gmail draft
+1. START (before the first search call): create the Excel with the header row only, save it, and create the Gmail draft
    (subject: "Game — ריצה בתהליך <date>", body: start index + "הריצה התחילה") with that Excel attached. Keep the draft id.
 2. CHECKPOINT after EVERY finished address (including an address with no business):
    a. append that address's NEW businesses to the Excel and save it to disk;
@@ -17,9 +17,9 @@ So the draft is NOT written at the end — it is created at the start and kept u
    The index only ever moves past addresses that are already in the draft.
 3. STOP LIMITS — check them only BETWEEN addresses, never stop in the middle of an address:
    - 12 addresses finished in this run (skipped placeholder addresses don't count), OR
-   - 120 Tavily calls in this run (count every tavily_search and tavily_extract; if the limit is passed in the middle of an address, finish that address and stop), OR
+   - 120 search calls in this run (count every tavily_search and tavily_extract, or WebSearch and WebFetch; if the limit is passed in the middle of an address, finish that address and stop), OR
    - 100 NEW businesses.
-4. FINISH — ALWAYS, whatever the reason the scan stopped (limit reached, Tavily error 432, any other error):
+4. FINISH — ALWAYS, whatever the reason the scan stopped (limit reached, any error):
    check-report on the Excel → STEP 3 (known list + index + push + verify) → final update_draft: subject "דוח נכסים לתאריך:<date>"
    (prefixed with "⚠️ INDEX NOT SAVED <n> " when STEP 3 ended with INDEX_SAVED=no),
    Excel attached, full summary including WHY the scan stopped and whether the index was saved. NEVER end a run without this FINISH step.
@@ -56,12 +56,19 @@ cat known_businesses/README.md
 python3 -c "import openpyxl; print('Known businesses:', openpyxl.load_workbook('known_businesses/known_businesses.xlsx').active.max_row - 1)"
 # Download canonical Jerusalem neighborhoods list (source of truth lives in the Arnona_Agent repo)
 curl -s -o ./jerusalem_neighborhoods.json https://raw.githubusercontent.com/newormahada-blip/Arnona_Agent/main/data/jerusalem_neighborhoods.json
-## STEP 0 — check if the Tavily MCP available
-Check if there enough tokens or credits in the account. If all used: do not scan; go straight to FINISH — the draft (already created in step 1 above) says that the Tavily monthly usage is up. Do NOT try to use WebSearch or any other search tool instead of Tavily.
-## HOW TO SEARCH — the Tavily connector
-The skills (business-address-lookup, mhb/SKILL.md, arabic/SKILL.md) say tavily_search / tavily_extract: call the Tavily connector tools with those names directly. Use max_results=20 for tavily_search.
-If a Tavily call fails because the usage limit is reached (error 432) in the middle of the run: stop scanning, keep only the addresses
-you fully finished, and go to FINISH — the index = the first address you did not finish, and the draft says the run stopped because the Tavily credit ran out.
+## STEP 0 — choose the search tool (never stop the run because of the search tool)
+Try one tavily_search call. If Tavily works, use it for the whole run (SEARCH_TOOL = Tavily).
+If Tavily is not available (not connected, sign-in refused, credit used up, error 432, any other refusal) — do NOT stop the run and do NOT go to FINISH.
+Switch to the built-in WebSearch (instead of tavily_search) and WebFetch (instead of tavily_extract), and scan exactly as usual (SEARCH_TOOL = WebSearch).
+Write in the draft subject (e.g. "[WebSearch]") and in the summary which tool was used, and why Tavily was not.
+## HOW TO SEARCH
+The skills (business-address-lookup, mhb/SKILL.md, arabic/SKILL.md) say tavily_search / tavily_extract.
+- SEARCH_TOOL = Tavily: call the Tavily connector tools with those names directly. Use max_results=20 for tavily_search.
+- SEARCH_TOOL = WebSearch: every tavily_search becomes a WebSearch call, every tavily_extract becomes a WebFetch call. Every rule of the skills stays the same:
+  open every finding with WebFetch, street AND house number on the page, never a category page, the same exhaustive rounds.
+If Tavily stops working in the middle of the run (error 432 or any refusal): switch to WebSearch / WebFetch from the next call and continue — do not stop.
+Note the switch (address and index) in the draft summary.
+The STOP LIMIT of 120 search calls counts Tavily and WebSearch/WebFetch calls together.
 ## STEP 1 — Read current index
 CURRENT_INDEX=$(cat ./index | grep -oP '(?<=index = )\d+' || echo "0")
 echo "Starting from index: $CURRENT_INDEX"
@@ -93,13 +100,13 @@ PYSCRIPT
 # [RUN YOUR SCANNING LOGIC HERE]
 # For EACH address, in order:
 #   SKIP FIRST: if placeholder_number(address) is True (no house number, 0, 999, or 1000+), do NOT search it at all —
-#      no Tavily call, no directory check. It counts as done (the index moves past it); list how many were skipped in the summary.
+#      no search call, no directory check. It counts as done (the index moves past it); list how many were skipped in the summary.
 #   0. decode the municipal address (business-address-lookup ב.0 — e.g. "ב אונגר מאה שערים" = בתי אונגרין, a DIFFERENT
 #      place from רחוב מאה שערים), and choose the search mode (Hebrew / mixed / Arabic) as arabic/SKILL.md says;
 #      write both in the address's ✅ report,
 #   1. run the searches of that mode: Hebrew → business-address-lookup in full (base set ב.1, expansion rounds ב.3, ב.4);
 #      mixed → that + 2–3 Arabic ones; Arabic → arabic/SKILL.md decides the LANGUAGE and the QUERIES;
-#      every other rule of business-address-lookup stays: one address at a time, tavily_extract for every finding,
+#      every other rule of business-address-lookup stays: one address at a time, tavily_extract (or WebFetch) for every finding,
 #      street AND house number on the page, never a category page.
 #      Businesses found in Arabic: "שם העסק" = Hebrew name + the Arabic original in parentheses, as arabic/SKILL.md says.
 #   2. then, if mhb_of[address] is not empty, verify those directory entries exactly as mhb/SKILL.md says
@@ -165,7 +172,7 @@ REQUIRED COLUMNS (in this order):
    - Start from the neighborhood written for this address in column B of Adresses.xlsx (neighborhood_of[address]).
    - VERIFY IT ON THE INTERNET — only for addresses where a business was found:
      * First use the business pages you already extracted (d.co.il, b144, Google Maps, the business site often state the neighborhood).
-     * If they don't say, run up to 2 extra tavily_search queries: "<address>" ירושלים שכונה / "<address>" ירושלים
+     * If they don't say, run up to 2 extra search queries (tavily_search or WebSearch): "<address>" ירושלים שכונה / "<address>" ירושלים
      * These verification searches are a SEPARATE step after the address scan, and they follow the same one-address-at-a-time rule.
    - Change the file's neighborhood ONLY if 2 independent sources (or 1 official source: Jerusalem municipality / gov.il)
      explicitly give a different neighborhood for this EXACT address (street + house number), not just for the street.
@@ -193,7 +200,7 @@ CRITICAL RULES:
 - In the Gmail draft summary, also say how many businesses came from the Haredi directory (mhb.co.il) and how many directory candidates were rejected
 - In the Gmail draft summary, say how many addresses were skipped because of a placeholder house number (no number, 0, 999, 1000+)
 - In the Gmail draft summary, add the Arabic search section described at the end of arabic/SKILL.md (addresses per mode, businesses found in Arabic, Arabic businesses left out only because the page had no house number)
-- In the Gmail draft summary, say why the scan stopped (address limit / Tavily-call limit / 100 businesses / Tavily credit / error) and the number of Tavily calls used
+- In the Gmail draft summary, say why the scan stopped (address limit / search-call limit / 100 businesses / error), which search tool was used (Tavily or WebSearch, and why), and the number of search calls used
 - Use EXACT Hebrew headers (no typos or variations)
 - Save as .xlsx (Excel format)
 - No extra columns allowed
