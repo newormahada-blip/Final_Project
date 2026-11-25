@@ -1,26 +1,21 @@
 #!/usr/bin/env python3
 """Writes agent_progress.json for the Arnona_Agent site — no addresses, only:
-  index   : the routine's position (from ./index), 0-based into the address list
   total   : number of addresses in Adresses.xlsx
   blocks  : the neighborhood runs of Adresses.xlsx, in file order:
             {"neighborhood", "start" (inclusive), "end" (exclusive), "count"}
+The routine's position is NOT here: the site reads it from ./index ("index = N", 0-based into the
+same list), so a routine push of ./index never needs a bot commit after it.
 
-  python3 agent_progress.py            # blocks from Adresses.xlsx (local, else from storage)
-  python3 agent_progress.py --index-only   # keep total/blocks from the existing JSON, refresh index
+Run it only when Adresses.xlsx changes (after `storage.py push Adresses.xlsx`):
+  python3 agent_progress.py        # Adresses.xlsx local, else from the private bucket
+or run the "agent progress" workflow by hand (needs the SUPABASE_SERVICE_KEY repo secret).
 """
 import json
-import re
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "agent_progress.json"
-
-
-def read_index():
-    m = re.search(r"\d+", (ROOT / "index").read_text(encoding="utf-8"))
-    return int(m.group()) if m else 0
 
 
 def blocks_from_addresses():
@@ -42,19 +37,10 @@ def blocks_from_addresses():
 
 
 def main(argv):
-    if "--index-only" in argv and OUT.exists():
-        old = json.loads(OUT.read_text(encoding="utf-8"))
-        total, blocks = old["total"], old["blocks"]
-    else:
-        total, blocks = blocks_from_addresses()
-    data = {
-        "index": read_index(),
-        "total": total,
-        "blocks": blocks,
-        "updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-    }
+    total, blocks = blocks_from_addresses()
+    data = {"total": total, "blocks": blocks}
     OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-    print(f"agent_progress.json: index={data['index']} total={total} blocks={len(blocks)}")
+    print(f"agent_progress.json: total={total} blocks={len(blocks)}")
 
 
 if __name__ == "__main__":
