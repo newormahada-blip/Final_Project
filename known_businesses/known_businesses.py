@@ -11,7 +11,7 @@
 כך עסק שהועלה לאתר אחרי הריצה הקודמת (או שנמצא בריצה שנקטעה) לא ידווח שוב.
 
 ההתאמה: אותה כתובת (רחוב + מספר בית) וגם שם דומה — אחרי ניקוי תארים (עו"ד, ד"ר, בע"מ...),
-סימני פיסוק וסדר מילים. כך "בן צבי נרדה" ו-"נרדה בן-צבי, עו\"ד" באותה כתובת נחשבים אותו עסק.
+סימני פיסוק וסדר מילים. כך "כהן ישראל" ו-"ישראל כהן, עו\"ד" באותה כתובת נחשבים אותו עסק.
 """
 import argparse
 import json
@@ -28,7 +28,7 @@ from openpyxl.styles import Font, PatternFill
 HERE = os.path.dirname(os.path.abspath(__file__))
 KNOWN_FILE = os.path.join(HERE, "known_businesses.xlsx")
 BUSINESS_TYPES_FILE = os.path.join(HERE, "business_types.txt")
-SNAPSHOT_URL = "https://raw.githubusercontent.com/urbandetective007/Arnona_Agent/main/reports/agent_snapshot.json"
+SNAPSHOT_URL = "https://raw.githubusercontent.com/newormahada-blip/Arnona_Agent/main/reports/agent_snapshot.json"
 SNAPSHOT_CACHE = "/tmp/agent_snapshot.json"
 SYSTEM_SOURCE = "מערכת (אתר)"
 HEADERS = ["שם העסק", "כתובת", "שכונה", "סוג עסק", "קישור", "מקור", "תאריך הוספה"]
@@ -94,9 +94,22 @@ def names_match(a, b):
     return len(ta & tb) / len(ta | tb) >= 0.5
 
 
+KNOWN_REL = "known_businesses/known_businesses.xlsx"   # path in the private bucket (storage.py)
+
+
+def _storage():
+    sys.path.insert(0, os.path.dirname(HERE))
+    import storage
+    return storage
+
+
 def load_known():
     if not os.path.exists(KNOWN_FILE):
-        return []
+        try:
+            _storage().download(KNOWN_REL, KNOWN_FILE)
+        except SystemExit as e:
+            print(f"STORAGE DOWNLOAD FAILED: {e}", file=sys.stderr)
+            return []
     ws = openpyxl.load_workbook(KNOWN_FILE, read_only=True).active
     rows = list(ws.iter_rows(values_only=True))
     if not rows:
@@ -190,6 +203,12 @@ def save_known(rows):
         ws.column_dimensions[col].width = width
     ws.freeze_panes = "A2"
     wb.save(KNOWN_FILE)
+    # The list is kept in the private bucket; a failed upload must not stop the routine.
+    if os.environ.get("KNOWN_BUSINESSES_UPLOAD", "1") != "0":
+        try:
+            _storage().upload(KNOWN_REL, KNOWN_FILE)
+        except SystemExit as e:
+            print(f"STORAGE UPLOAD FAILED (write this line in the draft): {e}", file=sys.stderr)
 
 
 def read_report(path):

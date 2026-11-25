@@ -21,9 +21,11 @@ python3 tools/neighborhoods/assign_neighborhoods.py "<קובץ הכתובות ה
 
 - קובץ הקלט: הכתובות בעמודה הראשונה ("רחוב מספר"), עם או בלי שורת כותרת.
 - בסוף הריצה מודפס סיכום: כמה כתובות הוכרעו בכל שיטה, אילו רחובות לא נמצאו ברשימת העירייה, ואילו שמות שכונה לא הותאמו לרשימה.
-- הריצה מעדכנת את קבצי הזיכרון ב-`data/` — **צריך לעשות להם commit יחד עם הקובץ החדש.**
+- `address_cache.csv` ו-`geocode_cache.jsonl` מכילים את רשימת הכתובות, ולכן הם לא ב-git אלא ב-bucket הפרטי (`storage.py` בשורש הריפו).
+  הסקריפט מוריד אותם בתחילת הריצה ומעלה אותם בסוף (`--local-only` מדלג על זה). צריך מפתח: `SUPABASE_SERVICE_KEY`, או network secret לפרויקט.
 
-**ב-Final_Project (הרוטינה Game):** מחליפים את `Adresses.xlsx` בקובץ שיצא, מעבירים את הישן ל-`archive/`,
+**ב-Final_Project (הרוטינה Game):** מעלים את הקובץ שיצא ל-bucket (`python3 storage.py push Adresses.xlsx`, אחרי שמגבים את הישן
+עם `storage.py push archive/Adresses_before_<date>.xlsx`), מריצים `python3 agent_progress.py` ועושים commit ל-`agent_progress.json`,
 ומאפסים את `index` ל-`index = 0` (כתובת חדשה נכנסת לאמצע הקובץ, לשכונה שלה, ולכן המיקומים זזים).
 
 **סדר השורות בקובץ שיוצא:** שכונה אחר שכונה, לפי הסדר ברשימת השכונות של הסוכן (שמקבצת שכונות סמוכות),
@@ -68,8 +70,8 @@ python3 tools/neighborhoods/assign_neighborhoods.py "<קובץ הכתובות ה
 | `assign_neighborhoods.py` | הכלי |
 | `data/municipal_streets_2020.xlsx` | רשימת רחוב ← שכונה של עיריית ירושלים (17.11.2020) |
 | `data/overrides.json` | תיקונים ידניים (כולל ההשלמות שנעשו ביד באוקטובר 2026) |
-| `data/address_cache.csv` | כתובת ← שכונה, לכל כתובת שכבר הוכרעה |
-| `data/geocode_cache.jsonl` | מיקום ב-OSM לכל כתובת שאותרה במפה |
+| `data/address_cache.csv` | כתובת ← שכונה, לכל כתובת שכבר הוכרעה (ב-bucket, לא ב-git) |
+| `data/geocode_cache.jsonl` | מיקום ב-OSM לכל כתובת שאותרה במפה (ב-bucket, לא ב-git) |
 
 רשימת השכונות ומרכזי השכונות נקראים מ-`data/` של Arnona_Agent: מקומית כשהכלי רץ בתוך Arnona_Agent, ומ-GitHub (ענף `main`) כשהוא רץ ב-Final_Project.
 

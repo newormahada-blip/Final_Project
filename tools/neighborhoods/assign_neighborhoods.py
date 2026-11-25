@@ -43,7 +43,7 @@ import openpyxl
 HERE = Path(__file__).resolve().parent
 DATA = HERE / 'data'
 REPO_DATA = HERE.parents[1] / 'data'   # Arnona_Agent keeps the registry in <repo>/data
-RAW = 'https://raw.githubusercontent.com/urbandetective007/Arnona_Agent/main/data/'
+RAW = 'https://raw.githubusercontent.com/newormahada-blip/Arnona_Agent/main/data/'
 USER_AGENT = 'ArnonaAgentProject/1.0 (Jerusalem municipality property map)'
 BOUNDS = dict(south=31.70, north=31.90, west=35.07, east=35.32)
 
@@ -259,6 +259,29 @@ def choose(options, geo, names, centers):
 
 
 # ── Caches ────────────────────────────────────────────────────────────────────
+# address_cache.csv and geocode_cache.jsonl hold the municipal address list, so they live in the
+# private bucket (see storage.py at the repo root), not in git. Pulled before a run, pushed after.
+
+CACHE_FILES = ['tools/neighborhoods/data/address_cache.csv', 'tools/neighborhoods/data/geocode_cache.jsonl']
+
+
+def _storage():
+    sys.path.insert(0, str(HERE.parents[1]))
+    import storage
+    return storage
+
+
+def pull_caches():
+    st = _storage()
+    for rel in CACHE_FILES:
+        if not (HERE.parents[1] / rel).exists():
+            st.download(rel)
+
+
+def push_caches():
+    st = _storage()
+    for rel in CACHE_FILES:
+        st.upload(rel)
 
 def read_address_cache():
     path = DATA / 'address_cache.csv'
@@ -298,10 +321,14 @@ def main():
     ap.add_argument('input')
     ap.add_argument('output')
     ap.add_argument('--no-cache', action='store_true', help='ignore earlier decisions (they are still updated)')
+    ap.add_argument('--local-only', action='store_true',
+                    help="don't pull/push the caches from/to the private bucket")
     ap.add_argument('--no-geocode', action='store_true',
                     help="don't call OpenStreetMap; streets in several neighborhoods get the most common one")
     args = ap.parse_args()
 
+    if not args.local_only:
+        pull_caches()
     registry = load_registry_file('jerusalem_neighborhoods.json')
     centers = load_registry_file('jerusalem_neighborhood_centers.json')
     overrides = json.loads((DATA / 'overrides.json').read_text(encoding='utf-8'))
@@ -377,6 +404,8 @@ def main():
     ws.column_dimensions['B'].width = 25
     out.save(args.output)
     write_address_cache(addr_cache)
+    if not args.local_only:
+        push_caches()
 
     print('\nHow addresses were decided:')
     for how, n in stats.most_common():

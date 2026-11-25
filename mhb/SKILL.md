@@ -79,7 +79,9 @@ for c in json.load(open('mhb/candidates.json', encoding='utf-8')):
 
 ```bash
 python3 mhb/fetch_pages.py /tmp/mhb_pages 1 510      # כ-35 דקות; ממשיך מאיפה שעצר
+python3 storage.py pull Adresses.xlsx                 # הכתובות ב-bucket הפרטי, לא ב-git
 python3 mhb/match_addresses.py /tmp/mhb_pages Adresses.xlsx mhb/candidates.json   # כ-2 דקות
+python3 storage.py push mhb/candidates.json
 ```
 
-ומעלים את `mhb/candidates.json` ל-`main`. אין צורך לגעת ב-`index`. במהדורה חדשה של המדריך מעדכנים את `URL` ב-`fetch_pages.py`.
+`mhb/candidates.json` נשמר ב-bucket הפרטי (`storage.py`), לא ב-git. אין צורך לגעת ב-`index`. במהדורה חדשה של המדריך מעדכנים את `URL` ב-`fetch_pages.py`.
