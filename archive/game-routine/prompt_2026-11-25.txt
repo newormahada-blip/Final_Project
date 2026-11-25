@@ -20,8 +20,9 @@ So the draft is NOT written at the end — it is created at the start and kept u
    - 120 Tavily calls in this run (count every tavily_search and tavily_extract; if the limit is passed in the middle of an address, finish that address and stop), OR
    - 100 NEW businesses.
 4. FINISH — ALWAYS, whatever the reason the scan stopped (limit reached, Tavily error 432, any other error):
-   check-report on the Excel → STEP 3 (known list + index + push) → final update_draft: subject "דוח נכסים לתאריך:<date>",
-   Excel attached, full summary including WHY the scan stopped. NEVER end a run without this FINISH step.
+   check-report on the Excel → STEP 3 (known list + index + push + verify) → final update_draft: subject "דוח נכסים לתאריך:<date>"
+   (prefixed with "⚠️ INDEX NOT SAVED <n> " when STEP 3 ended with INDEX_SAVED=no),
+   Excel attached, full summary including WHY the scan stopped and whether the index was saved. NEVER end a run without this FINISH step.
 5. At the very start (before step 1): list_drafts with query subject:"Game — ריצה בתהליך". A draft found there is from an earlier
    run that was cut: update only its subject to "Game — ריצה שנקטעה <its date> (התוצאות עד נקודת העצירה)" — do not touch its attachment.
 
@@ -135,8 +136,24 @@ git checkout main 2>/dev/null || git branch -M main
 # If it printed "STORAGE UPLOAD FAILED", write that line in the draft (the index is still pushed).
 git add index
 git commit -m "Update index: ${CURRENT_INDEX} → ${NEXT_INDEX}"
-git push -u origin main
-echo "✅ Index updated and pushed: $NEXT_INDEX"
+# Other commits can land on main during a run: ALWAYS rebase before pushing, up to 3 tries.
+INDEX_SAVED=no
+for i in 1 2 3; do
+  git pull --rebase origin main && git push origin HEAD:main && { INDEX_SAVED=yes; break; }
+  git rebase --abort 2>/dev/null; sleep 10
+done
+# Verify on GitHub itself, not only locally: main's ./index must hold the new value.
+git fetch -q origin main && [ "$(git ls-remote origin refs/heads/main | cut -f1)" = "$(git rev-parse origin/main)" ] \
+  && git show origin/main:index | grep -qx "index = ${NEXT_INDEX}" || INDEX_SAVED=no
+# raw.githubusercontent can lag a few minutes behind (cache) — check it, but only as a second signal:
+for i in 1 2 3 4 5 6; do
+  curl -s "https://raw.githubusercontent.com/newormahada-blip/Final_Project/main/index" | grep -qx "index = ${NEXT_INDEX}" && { RAW_OK=yes; break; }
+  RAW_OK=no; sleep 30
+done
+echo "INDEX_SAVED=$INDEX_SAVED RAW_OK=$RAW_OK next=${NEXT_INDEX}"
+# If INDEX_SAVED=no: put "⚠️ INDEX NOT SAVED ${NEXT_INDEX}" at the START of the draft subject (update_draft now, and keep it
+# in every later update_draft and in FINISH), and write the git error in the draft body. Keep scanning; try again at the next STEP 3.
+# If only RAW_OK=no: write "raw index not yet updated (cache)" in the draft body — the index IS saved.
 IMPORTANT: in the excel you generat: 1. only have in the first row the name of the column, and in the rest of the rows the business data. generate only excel the folow this instructions.
 IMPORTANT: When chaecking addresses check only in sequential order, one by one. Only move to the next address when you fully checked it and you are fully commited to the claim that there isn't a single business operating in that address.
 When generating Excel files for the Arnona Agent business investigation system,

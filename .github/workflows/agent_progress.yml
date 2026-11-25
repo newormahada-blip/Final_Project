@@ -1,16 +1,12 @@
 name: agent progress
 
-# Keeps agent_progress.json (index, total, neighborhood blocks — no addresses) in step with ./index,
-# so the Arnona_Agent site no longer reads Adresses.xlsx from this public repo.
-# Blocks are rebuilt from the private bucket only when the SUPABASE_SERVICE_KEY secret is set;
-# otherwise only the index is refreshed and the committed blocks are kept.
+# Rebuilds agent_progress.json (total + neighborhood blocks of Adresses.xlsx — no addresses, no index)
+# for the Arnona_Agent site. The site reads the routine's position from ./index directly, so this runs
+# ONLY by hand, after a new Adresses.xlsx was pushed to the private bucket — never on a routine push,
+# so it never races the routine's `git push` of ./index.
+# Needs the SUPABASE_SERVICE_KEY repository secret (the address list is not in git).
 
 on:
-  push:
-    branches: [main]
-    paths: [index]
-  schedule:
-    - cron: "17 3 * * *"
   workflow_dispatch:
 
 permissions:
@@ -33,16 +29,17 @@ jobs:
         env:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
-          if [ -n "$SUPABASE_SERVICE_KEY" ] || [ -f Adresses.xlsx ]; then
-            python3 agent_progress.py
-          else
-            python3 agent_progress.py --index-only
+          if [ -z "$SUPABASE_SERVICE_KEY" ]; then
+            echo "::error::SUPABASE_SERVICE_KEY secret is not set — cannot read Adresses.xlsx from the bucket"
+            exit 1
           fi
+          python3 agent_progress.py
+          rm -f Adresses.xlsx
       - name: Commit if changed
         run: |
-          git diff --quiet -I '"updated_at"' -- agent_progress.json && { echo "no change"; exit 0; }
+          git diff --quiet -- agent_progress.json && { echo "no change"; exit 0; }
           git config user.name "agent-progress[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add agent_progress.json
-          git commit -m "agent_progress.json: index $(python3 -c 'import json;print(json.load(open("agent_progress.json"))["index"])')"
+          git commit -m "agent_progress.json: rebuilt from the address list"
           for i in 1 2 3; do git pull --rebase origin main && git push origin HEAD:main && break; sleep 5; done
