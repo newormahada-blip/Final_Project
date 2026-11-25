@@ -15,7 +15,8 @@
 3. **שמירה לפני הטיוטה:** בכל CHECKPOINT, אחרי שהעסקים של הכתובת נוספו לאקסל ו**לפני** update_draft:
    ```bash
    python3 known_businesses/known_businesses.py add "<האקסל>" --source "רוטינה Game $(date +%d-%m-%Y) מאינדקס ${CURRENT_INDEX}"
-   git add known_businesses/known_businesses.xlsx && git commit -m "known businesses checkpoint" ; git pull --rebase origin main ; git push origin main
+   # add שומר את הרשימה ומעלה אותה ל-bucket הפרטי (storage.py). לא עושים לה git add — היא לא ב-git.
+   # אם הודפס "STORAGE UPLOAD FAILED" — לכתוב את השורה בטיוטה ולהמשיך.
    ```
    כך כל עסק שמגיע לטיוטה כבר שמור ברשימה, גם אם הריצה נקטעת לפני STEP 3. (האינדקס ממשיך להתעדכן ב-STEP 3 כרגיל.)
 
@@ -44,7 +45,7 @@ python3 known_businesses/known_businesses.py check "<שם העסק>" "<כתוב�
 # בדיקה אחרונה של הדוח כולו לפני השמירה — חייב להדפיס "סה"כ KNOWN: 0":
 python3 known_businesses/known_businesses.py check-report "<דוח>.xlsx"
 
-# בסוף הריצה — מוסיפים את העסקים החדשים לקובץ ודוחפים אותו יחד עם index:
+# בסוף הריצה — מוסיפים את העסקים החדשים לרשימה (add מעלה אותה ל-bucket; ב-git דוחפים רק את index):
 python3 known_businesses/known_businesses.py add "<דוח>.xlsx" --source "רוטינה Game 14-10-2026"
 ```
 
