@@ -1,0 +1,48 @@
+name: agent progress
+
+# Keeps agent_progress.json (index, total, neighborhood blocks — no addresses) in step with ./index,
+# so the Arnona_Agent site no longer reads Adresses.xlsx from this public repo.
+# Blocks are rebuilt from the private bucket only when the SUPABASE_SERVICE_KEY secret is set;
+# otherwise only the index is refreshed and the committed blocks are kept.
+
+on:
+  push:
+    branches: [main]
+    paths: [index]
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: agent-progress
+  cancel-in-progress: false
+
+jobs:
+  progress:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install openpyxl==3.1.5
+      - name: Build agent_progress.json
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          if [ -n "$SUPABASE_SERVICE_KEY" ] || [ -f Adresses.xlsx ]; then
+            python3 agent_progress.py
+          else
+            python3 agent_progress.py --index-only
+          fi
+      - name: Commit if changed
+        run: |
+          git diff --quiet -I '"updated_at"' -- agent_progress.json && { echo "no change"; exit 0; }
+          git config user.name "agent-progress[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add agent_progress.json
+          git commit -m "agent_progress.json: index $(python3 -c 'import json;print(json.load(open("agent_progress.json"))["index"])')"
+          for i in 1 2 3; do git pull --rebase origin main && git push origin HEAD:main && break; sleep 5; done

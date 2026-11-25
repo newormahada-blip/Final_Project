@@ -1,0 +1,523 @@
+{
+ "index": 193,
+ "total": 32004,
+ "blocks": [
+  {
+   "neighborhood": "רחביה",
+   "start": 0,
+   "end": 365,
+   "count": 365
+  },
+  {
+   "neighborhood": "טלביה",
+   "start": 365,
+   "end": 862,
+   "count": 497
+  },
+  {
+   "neighborhood": "נחלאות",
+   "start": 862,
+   "end": 2074,
+   "count": 1212
+  },
+  {
+   "neighborhood": "מחנה יהודה",
+   "start": 2074,
+   "end": 2079,
+   "count": 5
+  },
+  {
+   "neighborhood": "המושבה הגרמנית",
+   "start": 2079,
+   "end": 2383,
+   "count": 304
+  },
+  {
+   "neighborhood": "המושבה היוונית",
+   "start": 2383,
+   "end": 2385,
+   "count": 2
+  },
+  {
+   "neighborhood": "בקעה",
+   "start": 2385,
+   "end": 2773,
+   "count": 388
+  },
+  {
+   "neighborhood": "ארנונה",
+   "start": 2773,
+   "end": 3055,
+   "count": 282
+  },
+  {
+   "neighborhood": "תלפיות",
+   "start": 3055,
+   "end": 3281,
+   "count": 226
+  },
+  {
+   "neighborhood": "תלפיות מזרח",
+   "start": 3281,
+   "end": 3850,
+   "count": 569
+  },
+  {
+   "neighborhood": "מקור חיים",
+   "start": 3850,
+   "end": 3916,
+   "count": 66
+  },
+  {
+   "neighborhood": "ימין משה",
+   "start": 3916,
+   "end": 3919,
+   "count": 3
+  },
+  {
+   "neighborhood": "קרית הלאום",
+   "start": 3919,
+   "end": 3933,
+   "count": 14
+  },
+  {
+   "neighborhood": "גבעת רם",
+   "start": 3933,
+   "end": 3938,
+   "count": 5
+  },
+  {
+   "neighborhood": "מאה שערים",
+   "start": 3938,
+   "end": 4434,
+   "count": 496
+  },
+  {
+   "neighborhood": "גאולה",
+   "start": 4434,
+   "end": 4861,
+   "count": 427
+  },
+  {
+   "neighborhood": "בית ישראל",
+   "start": 4861,
+   "end": 5185,
+   "count": 324
+  },
+  {
+   "neighborhood": "כרם אברהם",
+   "start": 5185,
+   "end": 5191,
+   "count": 6
+  },
+  {
+   "neighborhood": "מקור ברוך",
+   "start": 5191,
+   "end": 5554,
+   "count": 363
+  },
+  {
+   "neighborhood": "מוסררה",
+   "start": 5554,
+   "end": 5662,
+   "count": 108
+  },
+  {
+   "neighborhood": "סנהדריה",
+   "start": 5662,
+   "end": 5818,
+   "count": 156
+  },
+  {
+   "neighborhood": "סנהדריה מורחבת",
+   "start": 5818,
+   "end": 5819,
+   "count": 1
+  },
+  {
+   "neighborhood": "רמת אשכול",
+   "start": 5819,
+   "end": 5920,
+   "count": 101
+  },
+  {
+   "neighborhood": "מעלות דפנה",
+   "start": 5920,
+   "end": 5978,
+   "count": 58
+  },
+  {
+   "neighborhood": "הגבעה הצרפתית",
+   "start": 5978,
+   "end": 6512,
+   "count": 534
+  },
+  {
+   "neighborhood": "שיח' ג'ראח",
+   "start": 6512,
+   "end": 6604,
+   "count": 92
+  },
+  {
+   "neighborhood": "הר נוף",
+   "start": 6604,
+   "end": 6831,
+   "count": 227
+  },
+  {
+   "neighborhood": "בית הכרם",
+   "start": 6831,
+   "end": 7423,
+   "count": 592
+  },
+  {
+   "neighborhood": "קרית משה",
+   "start": 7423,
+   "end": 7648,
+   "count": 225
+  },
+  {
+   "neighborhood": "גבעת שאול",
+   "start": 7648,
+   "end": 7880,
+   "count": 232
+  },
+  {
+   "neighborhood": "בית וגן",
+   "start": 7880,
+   "end": 8311,
+   "count": 431
+  },
+  {
+   "neighborhood": "קרית היובל",
+   "start": 8311,
+   "end": 8959,
+   "count": 648
+  },
+  {
+   "neighborhood": "קרית מנחם",
+   "start": 8959,
+   "end": 9331,
+   "count": 372
+  },
+  {
+   "neighborhood": "מלחה",
+   "start": 9331,
+   "end": 9764,
+   "count": 433
+  },
+  {
+   "neighborhood": "גבעת מרדכי",
+   "start": 9764,
+   "end": 9863,
+   "count": 99
+  },
+  {
+   "neighborhood": "יפה נוף",
+   "start": 9863,
+   "end": 9864,
+   "count": 1
+  },
+  {
+   "neighborhood": "הולילנד",
+   "start": 9864,
+   "end": 9929,
+   "count": 65
+  },
+  {
+   "neighborhood": "רמת שרת",
+   "start": 9929,
+   "end": 10338,
+   "count": 409
+  },
+  {
+   "neighborhood": "קרית צאנז",
+   "start": 10338,
+   "end": 10461,
+   "count": 123
+  },
+  {
+   "neighborhood": "רוממה",
+   "start": 10461,
+   "end": 10800,
+   "count": 339
+  },
+  {
+   "neighborhood": "קטמון",
+   "start": 10800,
+   "end": 11344,
+   "count": 544
+  },
+  {
+   "neighborhood": "גוננים",
+   "start": 11344,
+   "end": 11839,
+   "count": 495
+  },
+  {
+   "neighborhood": "חומת שמואל",
+   "start": 11839,
+   "end": 11859,
+   "count": 20
+  },
+  {
+   "neighborhood": "רמת רחל",
+   "start": 11859,
+   "end": 11860,
+   "count": 1
+  },
+  {
+   "neighborhood": "גילה",
+   "start": 11860,
+   "end": 13077,
+   "count": 1217
+  },
+  {
+   "neighborhood": "גבעת משואה",
+   "start": 13077,
+   "end": 13358,
+   "count": 281
+  },
+  {
+   "neighborhood": "רמות",
+   "start": 13358,
+   "end": 15205,
+   "count": 1847
+  },
+  {
+   "neighborhood": "רמות א'",
+   "start": 15205,
+   "end": 15214,
+   "count": 9
+  },
+  {
+   "neighborhood": "רמת שלמה",
+   "start": 15214,
+   "end": 15715,
+   "count": 501
+  },
+  {
+   "neighborhood": "נווה יעקב",
+   "start": 15715,
+   "end": 16134,
+   "count": 419
+  },
+  {
+   "neighborhood": "פסגת זאב",
+   "start": 16134,
+   "end": 18071,
+   "count": 1937
+  },
+  {
+   "neighborhood": "פסגת זאב מזרח",
+   "start": 18071,
+   "end": 18073,
+   "count": 2
+  },
+  {
+   "neighborhood": "אזור תעשייה עטרות",
+   "start": 18073,
+   "end": 18077,
+   "count": 4
+  },
+  {
+   "neighborhood": "הרובע היהודי",
+   "start": 18077,
+   "end": 18275,
+   "count": 198
+  },
+  {
+   "neighborhood": "סילואן",
+   "start": 18275,
+   "end": 18659,
+   "count": 384
+  },
+  {
+   "neighborhood": "אבו תור",
+   "start": 18659,
+   "end": 19314,
+   "count": 655
+  },
+  {
+   "neighborhood": "וואדי אל-ג'וז",
+   "start": 19314,
+   "end": 19746,
+   "count": 432
+  },
+  {
+   "neighborhood": "ראס אל-עמוד",
+   "start": 19746,
+   "end": 20247,
+   "count": 501
+  },
+  {
+   "neighborhood": "בית חנינא",
+   "start": 20247,
+   "end": 21846,
+   "count": 1599
+  },
+  {
+   "neighborhood": "שועפאט",
+   "start": 21846,
+   "end": 22530,
+   "count": 684
+  },
+  {
+   "neighborhood": "עין כרם",
+   "start": 22530,
+   "end": 22844,
+   "count": 314
+  },
+  {
+   "neighborhood": "גבעת הוורדים",
+   "start": 22844,
+   "end": 22993,
+   "count": 149
+  },
+  {
+   "neighborhood": "מטרסדורף",
+   "start": 22993,
+   "end": 23030,
+   "count": 37
+  },
+  {
+   "neighborhood": "באב א-זהרה",
+   "start": 23030,
+   "end": 23272,
+   "count": 242
+  },
+  {
+   "neighborhood": "רמת מוצא",
+   "start": 23272,
+   "end": 23340,
+   "count": 68
+  },
+  {
+   "neighborhood": "קרית אונסדורף",
+   "start": 23340,
+   "end": 23373,
+   "count": 33
+  },
+  {
+   "neighborhood": "הר חומה",
+   "start": 23373,
+   "end": 23957,
+   "count": 584
+  },
+  {
+   "neighborhood": "בית צפאפא",
+   "start": 23957,
+   "end": 24773,
+   "count": 816
+  },
+  {
+   "neighborhood": "ג'בל מוכבר",
+   "start": 24773,
+   "end": 26299,
+   "count": 1526
+  },
+  {
+   "neighborhood": "צור באחר",
+   "start": 26299,
+   "end": 27512,
+   "count": 1213
+  },
+  {
+   "neighborhood": "א-טור",
+   "start": 27512,
+   "end": 28528,
+   "count": 1016
+  },
+  {
+   "neighborhood": "עיסוויה",
+   "start": 28528,
+   "end": 29059,
+   "count": 531
+  },
+  {
+   "neighborhood": "כפר עקב",
+   "start": 29059,
+   "end": 29445,
+   "count": 386
+  },
+  {
+   "neighborhood": "ענתא",
+   "start": 29445,
+   "end": 29534,
+   "count": 89
+  },
+  {
+   "neighborhood": "וולג'ה",
+   "start": 29534,
+   "end": 29543,
+   "count": 9
+  },
+  {
+   "neighborhood": "הר הצופים",
+   "start": 29543,
+   "end": 29559,
+   "count": 16
+  },
+  {
+   "neighborhood": "בוכרים",
+   "start": 29559,
+   "end": 29864,
+   "count": 305
+  },
+  {
+   "neighborhood": "מרכז העיר",
+   "start": 29864,
+   "end": 29997,
+   "count": 133
+  },
+  {
+   "neighborhood": "ממילא",
+   "start": 29997,
+   "end": 30049,
+   "count": 52
+  },
+  {
+   "neighborhood": "ניות",
+   "start": 30049,
+   "end": 30148,
+   "count": 99
+  },
+  {
+   "neighborhood": "שמואל הנביא",
+   "start": 30148,
+   "end": 30158,
+   "count": 10
+  },
+  {
+   "neighborhood": "העיר העתיקה",
+   "start": 30158,
+   "end": 31287,
+   "count": 1129
+  },
+  {
+   "neighborhood": "שערי ים",
+   "start": 31287,
+   "end": 31288,
+   "count": 1
+  },
+  {
+   "neighborhood": "שיך באדר",
+   "start": 31288,
+   "end": 31289,
+   "count": 1
+  },
+  {
+   "neighborhood": "רכס לבן",
+   "start": 31289,
+   "end": 31290,
+   "count": 1
+  },
+  {
+   "neighborhood": "",
+   "start": 31290,
+   "end": 32004,
+   "count": 714
+  }
+ ],
+ "updated_at": "2026-11-25T15:41:35Z"
+}

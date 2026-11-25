@@ -2,3 +2,12 @@
 דוח נכסים לתאריך:*.xlsx
 __pycache__/
 known_businesses/business_types.txt
+
+# Private data — kept in the Supabase bucket private-data/final_project/ (see storage.py), never in git.
+*.xlsx
+*.xls
+*.csv
+*.jsonl
+excel outputs/
+mhb/candidates.json
+!tools/neighborhoods/data/municipal_streets_2020.xlsx
